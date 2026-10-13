@@ -1,0 +1,36 @@
+# Run the pipeline from the setup directory
+
+METADATA_FILE="../fastq/Tco2.fqfiles"
+FASTQ_DIR="../fastq"
+WORK_DIR="./work"
+
+GENOME_FASTA="../Tcongo_genome/TriTrypDB-46_TcongolenseIL3000_2019_Genome.fasta.gz"
+GENE_BED="../TriTrypDB-46_TcongolenseIL3000_2019.bed"
+
+THREADS=4
+
+# Choose interactive or quiet mode
+MODE="interactive"
+
+# QC thresholds
+QC_MEDIAN_FLAG=25
+QC_LOWER_QUARTILE_FLAG=10
+QC_MODE_FLAG=27
+QC_N_FLAG_PERCENT=5
+
+QC_MEDIAN_REVIEW=20
+QC_LOWER_QUARTILE_REVIEW=5
+QC_MODE_REVIEW=20
+QC_N_REVIEW_PERCENT=20
+
+QC_ALIGN_REVIEW_SAMPLES=1
+
+
+
+
+
+
+
+
+
+
