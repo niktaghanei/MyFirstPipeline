@@ -48,7 +48,6 @@ END {
 
 # Assess both mates using the configured numerical thresholds.
 awk -F '\t' \
-    # use -v to import variables from bash into awk
     -v median_flag="$QC_MEDIAN_FLAG" \
     -v median_review="$QC_MEDIAN_REVIEW" \
     -v quartile_flag="$QC_LOWER_QUARTILE_FLAG" \

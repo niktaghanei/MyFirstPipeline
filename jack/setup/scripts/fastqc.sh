@@ -44,10 +44,11 @@ if [[ "$MODE" == "interactive" ]]; then
 fi
 
 # pass fastqc the array of expected files so it runs them all together with parallel processing
+# Put the run output into a log so we can see if a particular file failed
+# use & to run this in the background so we can output something to the screen at the same time so the user knows it is still working
 fastqc --quiet --threads "$THREADS" \
     --outdir "$FASTQC_REPORT_DIR" "${fastqc_files[@]}" \
-    # Put the run output into a log so we can see if a particular file failed
-    > "$FASTQC_RUN_DIR/fastqc.log" 2>&1 & # use & to run this in the background so we can output something to the screen at the same time so the user knows it is still working
+    > "$FASTQC_RUN_DIR/fastqc.log" 2>&1 &
 
 #$! is the process ID of the last command run in the background i.e. the fastqc
 fastqc_pid=$!
