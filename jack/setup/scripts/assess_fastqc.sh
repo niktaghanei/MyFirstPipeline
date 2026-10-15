@@ -29,7 +29,9 @@ FILENAME == ARGV[1] {
 
 $1 == "WARN" || $1 == "FAIL" {
     if (!($3 in sample)) {
-        print "FastQC filename not found in metadata: " $3 > "/dev/stderr"
+        # if there is a fastqc file that is not in the metadata file flag it
+	# Output the message to the standard error collector so it does not go into the markdown report when tee is called - just to the screen.
+	print "FastQC filename not found in metadata: " $3 > "/dev/stderr"
         unmatched = 1
         next
     }
@@ -46,6 +48,7 @@ END {
 
 # Assess both mates using the configured numerical thresholds.
 awk -F '\t' \
+    # use -v to import variables from bash into awk
     -v median_flag="$QC_MEDIAN_FLAG" \
     -v median_review="$QC_MEDIAN_REVIEW" \
     -v quartile_flag="$QC_LOWER_QUARTILE_FLAG" \
@@ -58,7 +61,7 @@ awk -F '\t' \
 BEGIN {
     OFS = "\t"
 
-    # Each metric has a name, column position and two thresholds.
+    # Each metric has a name, column and thresholds to trigger a flag (the less strict) and review (prompting more than just a warning)
     metric[1] = "MinimumMedianQuality"
     column[1] = 8
     flag[1] = median_flag
@@ -97,6 +100,7 @@ FNR == 1 { next }
 NF == 0 { next }
 
 {
+    # Assume a pass and then overwrite if failure tests are met. Initialise another variable to collect the reason it was determined unusable
     assessment = "PASS"
     reasons = ""
 
@@ -104,9 +108,10 @@ NF == 0 { next }
     for (mate_number = 1; mate_number <= 2; mate_number++) {
         read_column = mate_number + 1
         read_count = $read_column
-
-        if (read_count !~ /^[0-9]+$/) {
+	# if the read count is missing the file is unusable
+        if (read_count == "") {
             assessment = "UNUSABLE"
+	    # add the reason with which mate was missing (i.e. R1 or R2)
             reasons = reasons "R" mate_number ": missing or invalid read count; "
         } else if (read_count + 0 == 0) {
             assessment = "UNUSABLE"
@@ -120,7 +125,7 @@ NF == 0 { next }
             field_number = column[i] + mate_number - 1
             value = $field_number
 
-            if (value !~ /^[0-9]+([.][0-9]+)?$/) {
+            if (value == "") {
                 assessment = "UNUSABLE"
                 reasons = reasons "R" mate_number " " metric[i] ": missing or invalid value; "
                 continue
@@ -166,8 +171,6 @@ NF == 0 { next }
 
     if (reasons == "") {
         reasons = "No thresholds from the config settings are crossed"
-    } else {
-        sub(/; $/, "", reasons)
     }
 
     # Module flags are recorded separately from numerical assessment.
@@ -184,7 +187,8 @@ NF == 0 { next }
     }
 
     print $1, assessment, action,
-          warnings[$1] + 0, failures[$1] + 0, reasons
+    #add 0 so something is output if nothing is returned rather than blank      
+    warnings[$1] + 0, failures[$1] + 0, reasons
 }
 ' "$FLAGS_FILE" "$FASTQC_EXTRACT_DIR/paired_metrics.tsv" \
     > "$ASSESSMENT_FILE" || exit 1

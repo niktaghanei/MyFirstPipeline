@@ -19,7 +19,8 @@ while read sample end1 end2; do
 
     start_time=$SECONDS
 
-    # Append an overlap count to each gene annotation.
+    # Use intersect to count how many times there is an overlap between the reads and the reference genome
+    # Append an overlap count to each gene annotation so we have a measure for expression per gene
     bedtools intersect \
         -a "$GENE_BED" \
         -b "$ALIGN_DIR/$sample.sorted.bam" \
@@ -55,7 +56,7 @@ while read sample end1 end2; do
     ' "$COUNT_DIR/$sample.gene_counts.bed" \
         > "$COUNT_DIR/$sample.counts.tsv" || exit 1
 
-    # Rank the same data by count, keeping the header at the top.
+    # Print the headers and then ordered by the number of alignments counted (highest first) the count per gene
     printf 'GeneID\tDescription\tReadAlignmentCount\n' \
         > "$COUNT_DIR/$sample.counts_ranked.tsv" || exit 1
 

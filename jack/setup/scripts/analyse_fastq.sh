@@ -6,7 +6,7 @@ FASTQC_EXTRACT_DIR="$2"
 awk -F '\t' '
 BEGIN {
     OFS = "\t"
-
+# print the headers first
     print "SampleName",
           "R1TotalReads", "R2TotalReads",
           "R1ReadLength", "R2ReadLength",

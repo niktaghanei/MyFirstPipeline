@@ -7,7 +7,7 @@ PREPARE_DIR="$WORK_DIR/prepare_inputs"
 
 mkdir -p "$PREPARE_DIR" || exit 1
 
-# Discover and count the groups in the current metadata.
+# this will dynamically discover and count the groups in the current metadata. This script needs to be dynamic so that if another clone is added or another experimental condition then all the experimental condition combinations will be generated to compare all possible scenarios
 awk -F '\t' 'NR > 1 && NF {print $2, $4, $5}' "$METADATA_FILE" |
 sort |
 uniq -c |
@@ -20,7 +20,9 @@ BEGIN {
     print $2, $3, $4, $1
 }
 ' > "$PREPARE_DIR/group_inventory.tsv" || exit 1
+#group inventory is a list of the groups and how many replicates are in each group so we can see whether there are enough for valid comparison
 
+# Read the group inventory back in to output a message about what has been found.
 awk -F '\t' '
 NR == 1 { next }
 NF {
@@ -39,10 +41,11 @@ END {
 
 printf '\nGroup inventory file: %s\n' "$PREPARE_DIR/group_inventory.tsv"
 
-# Collect existing conditions, then generate comparisons.
+# Generate a list of experimental conditions dynamically (based on what is in the metadata file) so later we can loop the analysis and compare which experimental conditions saw the biggest fold differences in gene expression
 awk -F '\t' '
 BEGIN { OFS = "\t" }
 
+#skip headers and blanks
 NR == 1 { next }
 NF == 0 { next }
 
@@ -61,6 +64,7 @@ END {
     # Induced versus uninduced at matching cell line and time.
     for (key in induced) {
         if (key in uninduced) {
+	    # use subsep to split the array key into its parts as stored above
             split(key, parts, SUBSEP)
             sample_type = parts[1]
             time = parts[2]
@@ -126,10 +130,12 @@ BEGIN {
           "DenominatorSampleType", "DenominatorTime", "DenominatorTreatment"
 }
 {
+    # generate a unique ID for each comparison scenario
     print NR + 1000, $0
 }
 ' > "$PREPARE_DIR/comparisons.tsv" || exit 1
 
+# Output a message about which comparison groups were found.
 awk -F '\t' '
 NR == 1 { next }
 NF {

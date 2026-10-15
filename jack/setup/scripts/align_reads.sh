@@ -32,6 +32,7 @@ if [[ "$MODE" == "interactive" ]]; then
     printf '\n\033[1;36mBuilding the Bowtie2 genome index' >&2
 fi
 
+# get the start time so we can count how long it takes to build the index for interactive mode screen output
 start_time=$SECONDS
 
 bowtie2-build "$GENOME_FASTA" "$INDEX_PREFIX" \
@@ -48,6 +49,8 @@ fi
 
 wait "$index_pid"
 index_status=$?
+
+# print how long it took to create the index
 elapsed=$((SECONDS - start_time))
 
 if [[ "$MODE" == "interactive" ]]; then
@@ -65,6 +68,8 @@ while read sample end1 end2; do
 
     start_time=$SECONDS
 
+    # Run bowtie on both reads of the same strand at the same time
+    # output the sam file and into the log so we can see which one failed if it exits on an error
     bowtie2 \
         -p "$THREADS" \
         -x "$INDEX_PREFIX" \
@@ -96,11 +101,11 @@ while read sample end1 end2; do
         "$ALIGN_DIR/$sample.sam" \
         > "$ALIGN_DIR/$sample.samtools.log" 2>&1
 
-    # Create the accompanying BAM index.
+    #create the BAM index
     samtools index "$ALIGN_DIR/$sample.sorted.bam" \
         >> "$ALIGN_DIR/$sample.samtools.log" 2>&1
 
-    # Save alignment statistics for later assessment.
+    # save alignment statistics for later assessment - this is not part of the current pipeline but could be a future development
     samtools flagstat "$ALIGN_DIR/$sample.sorted.bam" \
         > "$ALIGN_DIR/$sample.flagstat.txt" \
         2>> "$ALIGN_DIR/$sample.samtools.log"
@@ -119,6 +124,6 @@ done < "$ALIGN_DIR/samples.tsv"
 printf '\nAlignment completed for %d samples.\n' "$sample_count"
 printf 'Results directory: %s\n' "$ALIGN_DIR"
 
-# Record this successful run for gene counting.
+# Record this successful run so the gene counting script can pick up the correct run
 printf '%s\n' "$ALIGN_DIR" \
     > "$WORK_DIR/current_alignment_dir.txt" || exit 1
