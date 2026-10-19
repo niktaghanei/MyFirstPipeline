@@ -1,0 +1,20 @@
+# data
+/jack/fastq/
+/jack/Tcongo_genome/
+/jack/TriTrypDB-46_TcongolenseIL3000_2019.bed
+
+# configuration and generated results
+config.txt
+work/
+
+# recovery files
+*.swp
+*.swo
+*~
+
+
+
+
+
+
+
