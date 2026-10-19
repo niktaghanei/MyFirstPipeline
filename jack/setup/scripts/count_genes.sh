@@ -19,7 +19,7 @@ while read sample end1 end2; do
 
     start_time=$SECONDS
 
-    # Append an overlap count to each gene annotation.
+    # Append an overlap count to each gene annotation using -c. 
     bedtools intersect \
         -a "$GENE_BED" \
         -b "$ALIGN_DIR/$sample.sorted.bam" \

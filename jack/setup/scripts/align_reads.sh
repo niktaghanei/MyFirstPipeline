@@ -32,6 +32,7 @@ if [[ "$MODE" == "interactive" ]]; then
     printf '\n\033[1;36mBuilding the Bowtie2 genome index' >&2
 fi
 
+# Start a timer, then build the index in the background so we can show progress
 start_time=$SECONDS
 
 bowtie2-build "$GENOME_FASTA" "$INDEX_PREFIX" \
@@ -54,6 +55,7 @@ if [[ "$MODE" == "interactive" ]]; then
     printf ' (%ds)\033[0m\n' "$elapsed" >&2
 fi
 
+# Align each sample against the genome index
 sample_count=0
 
 while read sample end1 end2; do
@@ -62,9 +64,8 @@ while read sample end1 end2; do
         printf '\n\033[1;33mAligning %s using %s threads' \
             "$sample" "$THREADS" >&2
     fi
-
     start_time=$SECONDS
-
+    # Paired-end alignment, writing a SAM file and a log for each sample
     bowtie2 \
         -p "$THREADS" \
         -x "$INDEX_PREFIX" \

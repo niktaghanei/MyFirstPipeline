@@ -5,17 +5,27 @@ WORK_DIR="$2"
 FASTQ_DIR="$3"
 PREPARE_DIR="$WORK_DIR/prepare_inputs"
 
+# Initializing a directory  
 mkdir -p "$PREPARE_DIR" || exit 1
 
 # Expected filenames come from the metadata.
 awk -F '\t' '
 BEGIN { OFS = "\n" }
+# Removing the Header and printing End1 and End2 columns.
 NR > 1 && NF { print $6, $7 }
 ' "$METADATA_FILE" > "$PREPARE_DIR/expected_files.txt" || exit 1
+
 
 # Actual filenames come from the FASTQ folder.
 ls "$FASTQ_DIR" |
 awk '/\.fq\.gz$/' > "$PREPARE_DIR/actual_files.txt" || exit 1
+
+
+
+# Compare expected FASTQ filenames (from metadata) against the files that are
+# actually present in the FASTQ folder. Reports any expected files that
+# are missing; exits with status 1 if any are missing or if the expected
+# list is empty.
 
 awk '
 FILENAME == ARGV[1] {

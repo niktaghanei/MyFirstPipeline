@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Inputs: metadata file, working and  FASTQ directory
 METADATA_FILE="$1"
 WORK_DIR="$2"
 FASTQ_DIR="$3"
@@ -17,6 +18,7 @@ BEGIN {
     print "SampleType", "Time", "Treatment", "SampleCount"
 }
 {
+# uniq -c puts the count in $1, so move it to the end
     print $2, $3, $4, $1
 }
 ' > "$PREPARE_DIR/group_inventory.tsv" || exit 1
@@ -24,6 +26,7 @@ BEGIN {
 awk -F '\t' '
 NR == 1 { next }
 NF {
+# Count groups and samples, and track the smallest and largest group
     groups++
     samples += $4
     if (groups == 1 || $4 < minimum) minimum = $4
@@ -42,7 +45,7 @@ printf '\nGroup inventory file: %s\n' "$PREPARE_DIR/group_inventory.tsv"
 # Collect existing conditions, then generate comparisons.
 awk -F '\t' '
 BEGIN { OFS = "\t" }
-
+# Skip the header and any empty lines
 NR == 1 { next }
 NF == 0 { next }
 
@@ -77,7 +80,7 @@ END {
         split(combination, parts, SUBSEP)
         sample_type = parts[1]
         treatment = parts[2]
-
+	# The + 0 makes awk compare the times as numbers
         for (later in times) {
             for (earlier in times) {
                 if ((later + 0) > (earlier + 0) &&
@@ -118,6 +121,7 @@ END {
 sort -t $'\t' \
     -k2,2 -k3,3 -k5,5 -k4,4n \
     -k6,6 -k8,8 -k7,7n -k1,1 |
+# Add a header and give each comparison an ID (starting at 1001)
 awk '
 BEGIN {
     OFS = "\t"
@@ -130,6 +134,7 @@ BEGIN {
 }
 ' > "$PREPARE_DIR/comparisons.tsv" || exit 1
 
+# Count how many comparisons there are of each type
 awk -F '\t' '
 NR == 1 { next }
 NF {
