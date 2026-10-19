@@ -23,9 +23,7 @@ cd MyFirstPipeline
 
 ### 2 Decrypt and extract the pipeline
 
-ccrypt -c Unsupervised_Learners.MyFirstPipeline.tar.gz.cpt \
-
-    > Unsupervised_Learners.MyFirstPipeline.tar.gz
+ccrypt -c Unsupervised_Learners.MyFirstPipeline.tar.gz.cpt > Unsupervised_Learners.MyFirstPipeline.tar.gz
 
 mkdir -p pipeline
 
